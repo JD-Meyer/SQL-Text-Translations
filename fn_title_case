@@ -1,0 +1,55 @@
+/*
+* takes a string
+* returns the string with all words capitalized
+* usage: fn_title_case('my input string or my column name')
+*/
+
+-- remove old function
+DROP FUNCTION IF EXISTS fn_title_case;
+GO
+DELIMITER $$
+-- create new function
+create function fn_title_case
+	(v_input_string varchar(255))
+RETURNS varchar(255)
+BEGIN
+
+-- declare variables
+declare i int;
+DECLARE punctuation varchar(17);
+declare this_character char(1);
+declare output_string varchar(255);
+declare boolean_value int;
+declare input_length int;
+
+-- Set variable values
+set input_length = char_length(v_input_string);
+set boolean_value = 0;
+set i = 0;
+set punctuation = ' ';
+set output_string = '';
+
+begin
+-- Loop through each character in the input string
+while i <= input_length do
+	-- Set the current substring to position i with length 1
+	SET this_character = SUBSTRING( v_input_string, i, 1 );
+	-- If the current character exists in the punctuation string, i.e. if the current character is a space
+    IF LOCATE( this_character, punctuation ) > 0 THEN
+		-- Set the current character to null and the boolean to 1
+		set this_character = '', output_string = concat(output_string, this_character), boolean_value = 1;
+    elseif boolean_value=1 then
+		-- Only if the punctuation (a space) was detected in the previous step, 
+        -- Insert a space and capitalize the letter
+		SET output_string = concat(output_string, ' ', UCASE(this_character)), boolean_value = 0;
+	else
+		-- If the space was NOT detected, add the current character in lower case
+		set output_string = concat(output_string, LCASE(this_character));
+    end if;
+	-- Increment the iterator
+	set i = i+1;
+end while;
+end;
+    RETURN output_string;
+END$$
+DELIMITER ;

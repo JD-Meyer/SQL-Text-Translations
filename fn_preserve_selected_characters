@@ -1,0 +1,74 @@
+/*
+* PURPOSE: Removes all characters from a column except those specified
+* Usage: fn_preserve_selected_characters(input_string_or_column, 's0m3_ch@RaC+er5')
+*/
+
+-- remove old function
+drop function if exists fn_preserve_selected_characters;
+GO
+DELIMITER $$
+-- create new function
+create function fn_preserve_selected_characters
+	(v_input_string varchar(255),
+	 v_acceptable_characters varchar(255))
+returns varchar(255)
+
+begin
+-- declare variables
+declare i int;
+declare acceptable_values varchar(255);
+declare this_character char(1);
+declare output_string varchar(255);
+declare input_length int;
+declare boolean_value int;
+declare space varchar(3);
+
+-- Set variable values
+set input_length = char_length(v_input_string);
+set i = 0;
+set acceptable_values = v_acceptable_characters;
+set output_string = '';
+set boolean_value = 0;
+set space = 'no';
+
+begin
+
+-- check for existence of spaces
+if instr( acceptable_values, ' ') then
+	begin
+    while i < input_length do
+		SET this_character = SUBSTRING( v_input_string, i, 1 );
+			if this_character = ' ' then
+				set output_string = concat(output_string, ' ');
+			elseif instr(acceptable_values, this_character) then
+				set output_string = concat(output_string, this_character);
+			else set output_string = concat(output_string, '');
+            end if;
+		-- set output_string = 'pickle', space = 'yes';
+        set i = i + 1;
+    end while;
+	end;
+-- if there are no spaces in input string
+-- then this section is complete
+else 
+	begin
+	while i <= input_length do
+		-- set the current substring to position i with length 1
+		SET this_character = SUBSTRING( v_input_string, i, 1 );
+		-- if the current character exists in the punctuation string
+		if LOCATE( this_character, acceptable_values ) > 0 THEN
+			-- set the current character to null and the boolean to 1
+			set output_string = concat(output_string, this_character);
+		end if;
+		-- increment the iterator
+		set i = i+1;
+	end while;
+    end;
+end if;
+
+end;
+    RETURN output_string;
+END$$
+DELIMITER ;
+
+-- select fn_preserve_selected_characters('123Eleanor Roo00se+veldt, was a gr34t w0m4+n', '0123456789+ ');

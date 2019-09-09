@@ -1,0 +1,83 @@
+/*
+* PURPOSE: Removes characters specified by the user
+* SYNTAX: fn_remove_selected_characters(input_string_or_column, 's0m3_ch@Rac+erS')
+*/
+
+-- remove old function
+DROP FUNCTION IF EXISTS fn_remove_selected_characters;
+GO
+DELIMITER $$
+-- create new function
+create function fn_remove_selected_characters
+	(v_input_string varchar(255),
+	 v_unacceptable_characters varchar(255))
+RETURNS varchar(255)
+BEGIN
+
+-- declare variables
+declare i int;
+declare unacceptable_values varchar(255);
+declare this_character char(1);
+declare output_string varchar(255);
+declare input_length int;
+declare boolean_value int;
+declare space varchar(3);
+
+-- Set variable values
+set input_length = char_length(v_input_string);
+set i = 0;
+set unacceptable_values = v_unacceptable_characters;
+set output_string = '';
+set boolean_value = 0;
+set space = 'no';
+
+begin
+-- Leave spaces if they aren't in the exclude list
+if instr( unacceptable_values, ' ') = 0 then
+	begin
+    while i < input_length do
+		SET this_character = SUBSTRING( v_input_string, i, 1 );
+			-- If the current character is a space, then concatenate a space to the output
+            -- Although it seems redundant to explicitely add a space,
+            -- SUBSTRING() equates a space to the empty string
+			if this_character = ' ' then
+				set output_string = concat(output_string, ' ');
+			-- if the current character is not a space, remove it if it's unwanted
+			elseif instr(unacceptable_values, this_character) then
+				set output_string = concat(output_string, '');
+			-- otherwise include the character
+			else set output_string = concat(output_string, this_character);
+            -- end begin inside if statement
+            end if;
+        set i = i + 1;
+    end while;
+	end;
+-- otherwise, if spaces are in the exclude list, remove them along with other excluded characters
+else
+	begin
+    while i < input_length do
+		begin
+		SET this_character = SUBSTRING( v_input_string, i, 1 );
+		-- if the character is to be excluded, exclude it
+		-- there is no special logic for spaces because SUBSTRING treats spaces as empty strings
+		if instr(unacceptable_values, this_character) > 0 then
+			set output_string = concat(output_string, '');
+		else set output_string = concat(output_string, this_character);
+		end if;
+        end;
+        set i = i + 1;
+    end while;
+    -- end begin inside else statement;
+	end;
+-- end outermost if
+end if;
+-- end first begin
+end;
+    RETURN output_string;
+END$$
+DELIMITER ;
+
+
+-- select fn_remove_selected_characters('123Eleanor Roo00se+veldt, was a gr34t w0m4+n', '1234Ee56789');
+
+

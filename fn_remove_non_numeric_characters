@@ -1,0 +1,50 @@
+/*
+* PURPOSE: Removes all non-numeric characters from a string
+* SYNTAX: fn_remove_non_numeric_characters(input_string_or_column)
+*/
+
+-- remove old function
+drop function if exists fn_remove_non_numeric_characters;
+GO
+DELIMITER $$
+
+-- create new function
+create function fn_remove_non_numeric_characters
+	(v_input_string varchar(255))
+returns varchar(255)
+
+
+begin
+-- declare variables
+declare i int;
+declare acceptable_values varchar(255);
+declare this_character char(1);
+declare output_string varchar(255);
+declare input_length int;
+
+-- Set variable values
+set input_length = char_length(v_input_string);
+set i = 0;
+set acceptable_values = '0123456789';
+set output_string = '';
+
+begin
+while i <= input_length do
+    -- set the current substring to position i with length 1
+	SET this_character = SUBSTRING( v_input_string, i, 1 );
+	-- if the current character exists in the punctuation string
+    if LOCATE( this_character, acceptable_values ) > 0 THEN
+		-- set the current character to null and the boolean to 1
+		set output_string = concat(output_string, this_character);
+    end if;
+    -- increment the iterator
+	set i = i+1;
+end while;
+end;
+    RETURN output_string;
+END$$
+DELIMITER ;
+
+-- test the function
+-- select fn_remove_non_numeric_characters('on123ce upo456n a ti789.+ me');
+
